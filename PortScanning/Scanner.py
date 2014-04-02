@@ -56,10 +56,33 @@ class Scanner():
 
 
     def ack_scan(self):
-        pass
+        for port in [21, 23, 25, 53, 80, 110, 443]:
+            resp = sr1(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="A"), timeout=2, verbose=0)
+            if str(type(resp)) == "<type 'NoneType'>":
+                self.set_print(self.dst_ip, port, self.results[3])
+            elif resp.haslayer(TCP):
+                if resp.getlayer(TCP).flags == 0x4:
+                    self.set_print(self.dst_ip, port, self.results[1])
+                elif resp.haslayer(ICMP):
+                    if int(resp.getlayer(ICMP).type) == 3 and int(resp.getlayer(ICMP).code) in [1, 2, 3, 9, 10, 13]:
+                        self.set_print(self.dst_ip, port, self.results[3])
 
     def stealth_connection(self):
-        pass
+        for port in [21, 23, 25, 53, 80, 110, 443]:
+            resp = sr1(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="S"), timeout=2, verbose=0)
+            if str(type(resp)) == "<type 'NoneType'>":
+                self.set_print(self.dst_ip, port, self.results[3])
+            elif resp.haslayer(TCP):
+                if resp.getlayer(TCP).flags == 0x12:
+                    send_rst = sr(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="R"), verbose=0,
+                                  timeout=1)
+                    self.set_print(self.dst_ip, port, self.results[1])
+                elif resp.getlayer(TCP).flags == 0x14:
+                    self.set_print(self.dst_ip, port, self.results[2])
+            elif resp.haslayer(ICMP):
+                if int(resp.getlayer(ICMP).type)==3 and int(resp.getlayer(ICMP).code) in [1,2,3,9,10,13]:
+                    print self.set_print(self.dst_ip,port, self.results[3])
+
 
     def fin_scan(self):
         """
@@ -78,8 +101,8 @@ class Scanner():
 
 
 def main():
-    sc = Scanner('8.8.8.8', '192.168.159.128')
-    sc.tcp_scan()
+    sc = Scanner('212.71.233.149', '192.168.159.128')
+    sc.stealth_connection()
 
 
 if __name__ == '__main__':
