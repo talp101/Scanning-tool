@@ -3,6 +3,7 @@ __author__ = 'tal'
 import urllib2
 
 
+
 class OsType():
     def __init__(self, service_name, os, version):
         self.service_name = service_name
@@ -13,6 +14,8 @@ class OsType():
 class BannerGrabber():
     def __init__(self, url):
         self.url = url
+        if 'http://' not in self.url:
+            self.url = "http://" + url
         self.os_dict = {'Microsoft-IIS/5.0': OsType('Microsoft-IIS/5.0', 'Windows', '2000'),
                         'nginx': OsType('nginx', 'Mac', 'OSX'),
                         'Microsoft-IIS/1.0': OsType('Microsoft-IIS/1.0', 'Windows', 'NT 3.51'),
@@ -24,7 +27,7 @@ class BannerGrabber():
                         'AkamaiGHost': OsType('AkamaiGHost', 'Linux', '2'),
                         'gws': OsType('gws', 'Google', 'Web Server'),
                         'squid/2.7.STABLE5': OsType('squid/2.7.STABLE5', 'Unix', '2'),
-                        }
+        }
 
     def banner_grabber(self):
         try:
@@ -36,3 +39,4 @@ class BannerGrabber():
 
     def detect_os(self, server):
         print 'Os:%s %s' % (self.os_dict[server].os, self.os_dict[server].version)
+
