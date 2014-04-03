@@ -1,9 +1,12 @@
 __author__ = 'tal'
+import os, sys
 
+sys.path.insert(0, os.path.abspath(".."))
 import argparse
-from BannerGrabbing import BannerGrabbing
-from NetworkMapping import NetworkMapping
-from PortScanning import Scanner
+
+import BannerGrabbing.BannerGrabbing
+import NetworkMapping.NetworkMapping
+import Scanner.Scanner
 
 
 def main():
@@ -16,21 +19,21 @@ def main():
     args = parser.parse_args()
 
     if args.b == 1 and args.p == 'ICMP':
-        bn = BannerGrabbing(args.ip)
+        bn = BannerGrabbing.BannerGrabbing.BannerGrabber(args.ip)
         bn.detect_os()
-        nm = NetworkMapping()
+        nm = NetworkMapping.NetworkMapping.NetworkMapping()
         nm.nm_run()
     elif args.b == 1 and (args.p == 'TCP' or args.p == 'UDP'):
-        bn = BannerGrabbing(args.ip)
+        bn = BannerGrabbing.BannerGrabbing.BannerGrabber(args.ip)
         bn.detect_os()
-        s = Scanner(args.ip, 'localhost', args.t)
-        s.runscan()
+        s = Scanner.Scanner.Scanner(args.ip, 'localhost', args.t, args.type)
+        s.run_scan()
     elif args.b == 0 and args.p == 'ICMP':
-        nm = NetworkMapping()
+        nm = NetworkMapping.NetworkMapping.NetworkMapping()
         nm.nm_run()
     elif args.b == 0 and (args.p == 'TCP' or args.p == 'UDP'):
-        s = Scanner(args.ip, 'localhost', args.t)
-        s.runscan()
+        s = Scanner.Scanner.Scanner(args.ip, 'localhost', args.t, args.type)
+        s.run_scan()
     else:
         print 'Error with args, bye bye'
         exit(1)

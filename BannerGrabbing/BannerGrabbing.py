@@ -3,7 +3,6 @@ __author__ = 'tal'
 import urllib2
 
 
-
 class OsType():
     def __init__(self, service_name, os, version):
         self.service_name = service_name
@@ -13,6 +12,7 @@ class OsType():
 
 class BannerGrabber():
     def __init__(self, url):
+        print "****** Starting Banner Grabbing ******"
         self.url = url
         if 'http://' not in self.url:
             self.url = "http://" + url
@@ -26,7 +26,7 @@ class BannerGrabber():
                         'Apache': OsType('Apache', 'Unix', 'Ubuntu'),
                         'AkamaiGHost': OsType('AkamaiGHost', 'Linux', '2'),
                         'gws': OsType('gws', 'Google', 'Web Server'),
-                        'squid/2.7.STABLE5': OsType('squid/2.7.STABLE5', 'Unix', '2'),
+                        'Apache/2.2.22 (Ubuntu)': OsType('Apache/2.2.22 (Ubuntu)', 'Unix', 'Ubuntu'),
         }
 
     def banner_grabber(self):
@@ -34,10 +34,17 @@ class BannerGrabber():
             u = urllib2.urlopen(self.url)
             return u.info()['server']
         except Exception, ex:
-            print "Error!! ", ex.message
-            return None
+            raise Exception('Could not connect to url')
 
-    def detect_os(self,):
-        server = self.banner_grabber()
-        print 'Os:%s %s' % (self.os_dict[server].os, self.os_dict[server].version)
+
+    def detect_os(self, ):
+        try:
+            server = self.banner_grabber()
+            print 'Os:%s %s' % (self.os_dict[server].os, self.os_dict[server].version)
+            print
+            print "****** End Of Banner Grabbing ******"
+        except Exception, ex:
+            print "Can't get Server from this url"
+            exit(1)
+
 
