@@ -7,7 +7,7 @@ from scapy.all import *
 
 class NetworkMapping():
     def __init__(self,):
-        pass
+        print 'Starting NetWorkMapping On Your Subnet'
 
     def subnet_calc(self, net, interface):
         ans, unans = scapy.layers.l2.arping(net, iface=interface, timeout=1, verbose=1)
@@ -54,5 +54,4 @@ class NetworkMapping():
                 self.subnet_calc(net, interface)
 
 
-nm = NetworkMapping()
-nm.nm_run()
+

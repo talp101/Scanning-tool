@@ -37,6 +37,7 @@ class BannerGrabber():
             print "Error!! ", ex.message
             return None
 
-    def detect_os(self, server):
+    def detect_os(self,):
+        server = self.banner_grabber()
         print 'Os:%s %s' % (self.os_dict[server].os, self.os_dict[server].version)
 
