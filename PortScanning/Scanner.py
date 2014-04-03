@@ -5,11 +5,13 @@ import logging
 
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy.all import *
+import socket
 
 
 class Scanner():
     def __init__(self, dst_ip, src_ip):
-        self.dst_ip = dst_ip
+        self.dst_ip = socket.gethostbyname(dst_ip)
+        # self.dst_ip = dst_ip
         self.src_ip = src_ip
         self.src_port = RandShort()
         self.dst_ports = 80
@@ -43,7 +45,7 @@ class Scanner():
                 for item in retrans:
                     if str(type(item)) != "<type 'NoneType'>":
                         self.udp_scan()
-                self.set_print(self.dst_ip, port, (self.results[1], "|", self.results[3]))
+                self.set_print(self.dst_ip, port, self.results[1]+"|"+self.results[3])
             elif resp.haslayer(UDP):
                 self.set_print(self.dst_ip, port, self.results[1])
             elif resp.haslayer(ICMP):
@@ -55,6 +57,7 @@ class Scanner():
                 print 'Checked'
 
 
+
     def ack_scan(self):
         for port in [21, 23, 25, 53, 80, 110, 443]:
             resp = sr1(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="A"), timeout=2, verbose=0)
@@ -62,7 +65,7 @@ class Scanner():
                 self.set_print(self.dst_ip, port, self.results[3])
             elif resp.haslayer(TCP):
                 if resp.getlayer(TCP).flags == 0x4:
-                    self.set_print(self.dst_ip, port, self.results[1])
+                    self.set_print(self.dst_ip, port, "Unfiltered)")
                 elif resp.haslayer(ICMP):
                     if int(resp.getlayer(ICMP).type) == 3 and int(resp.getlayer(ICMP).code) in [1, 2, 3, 9, 10, 13]:
                         self.set_print(self.dst_ip, port, self.results[3])
@@ -80,18 +83,18 @@ class Scanner():
                 elif resp.getlayer(TCP).flags == 0x14:
                     self.set_print(self.dst_ip, port, self.results[2])
             elif resp.haslayer(ICMP):
-                if int(resp.getlayer(ICMP).type)==3 and int(resp.getlayer(ICMP).code) in [1,2,3,9,10,13]:
-                    print self.set_print(self.dst_ip,port, self.results[3])
+                if int(resp.getlayer(ICMP).type) == 3 and int(resp.getlayer(ICMP).code) in [1, 2, 3, 9, 10, 13]:
+                    print self.set_print(self.dst_ip, port, self.results[3])
 
 
     def fin_scan(self):
         """
         Purpose: Send a fin packet over tcp, target should send back RST
         """
-        for port in [22, 23, 25, 53, 80, 443, 110, 21]:
+        for port in [21, 23, 25, 53, 80, 110, 443]:
             resp = sr1(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="F"), timeout=2, verbose=0)
             if str(type(resp)) == "<type 'NoneType'>":
-                self.set_print(self.dst_ip, port, (self.results[1], "|", self.results[3]))
+                self.set_print(self.dst_ip, port, self.results[1]+"|"+self.results[3])
             elif resp.haslayer(TCP):
                 if resp.getlayer(TCP).flags == 0x14:
                     self.set_print(self.dst_ip, port, self.results[2])
@@ -101,8 +104,8 @@ class Scanner():
 
 
 def main():
-    sc = Scanner('212.71.233.149', '192.168.159.128')
-    sc.stealth_connection()
+    sc = Scanner('localhost', '192.168.159.128')
+    sc.tcp_scan()
 
 
 if __name__ == '__main__':
