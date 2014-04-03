@@ -6,6 +6,8 @@ Created by Tal Peretz And Shiran Michali
 Lecture : Nir Valtman
 License : MIT
 
+Host on GitHub : https://github.com/talp101/Scanning-tool
+
 Requirements:
 Os - Unix like - tested on Ubuntu (Inside VM)
 Python - 2.7.6 +
