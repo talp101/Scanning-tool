@@ -31,6 +31,7 @@ class Scanner():
     def tcp_scan(self):
         print 'starting tcp_scan'
         for port in self.port_list:
+            port = int(port)
             resp = sr1(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="S"), timeout=self.timeout,
                        verbose=0)
             if str(type(resp)) == "<type 'NoneType'>":
@@ -47,6 +48,7 @@ class Scanner():
     def udp_scan(self):
         print 'starting udp_scan'
         for port in self.port_list:
+            port = int(port)
             resp = sr1(IP(dst=self.dst_ip) / UDP(sport=self.src_port, dport=port), timeout=self.timeout, verbose=0)
             if str(type(resp)) == "<type 'NoneType'>":
                 retrans = []
@@ -72,6 +74,7 @@ class Scanner():
     def ack_scan(self):
         print 'starting ack_scan'
         for port in self.port_list:
+            port = int(port)
             resp = sr1(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="A"), timeout=self.timeout,
                        verbose=0)
             if str(type(resp)) == "<type 'NoneType'>":
@@ -87,6 +90,7 @@ class Scanner():
     def stealth_connection(self):
         print 'starting stealth_connection'
         for port in self.port_list:
+            port = int(port)
             resp = sr1(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="S"), timeout=self.timeout,
                        verbose=0)
             if str(type(resp)) == "<type 'NoneType'>":
@@ -109,6 +113,7 @@ class Scanner():
         """
         print 'starting fin_scan'
         for port in self.port_list:
+            port = int(port)
             resp = sr1(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="F"), timeout=self.timeout,
                        verbose=0)
             if str(type(resp)) == "<type 'NoneType'>":
@@ -122,6 +127,10 @@ class Scanner():
                         self.set_print(self.dst_ip, port, self.results[3])
 
     def run_scan(self, ):
+        """
+        Choose the right type by the t argument
+        char -> func dict
+        """
         options = {'t': self.tcp_scan,
                    'u': self.udp_scan,
                    'a': self.ack_scan,
