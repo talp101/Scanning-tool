@@ -1,3 +1,4 @@
+import timeit
 from scapy.layers.inet import TCP, IP, ICMP, UDP
 
 __author__ = 'tal'
@@ -9,14 +10,19 @@ import socket
 
 
 class Scanner():
-    def __init__(self, dst_ip, src_ip, timeout, scan_type):
+    def __init__(self, dst_ip, src_ip, timeout, scan_type, ports_list=None):
+        if not ports_list or len(ports_list) == 0:
+            ports_list = [21, 23, 25, 53, 80, 110, 443]
         print '******Starting port scanning******'
+        self.start = timeit.default_timer()
         self.dst_ip = socket.gethostbyname(dst_ip)
         # self.dst_ip = dst_ip
+        self.port_list = ports_list
         self.src_ip = src_ip
         self.src_port = RandShort()
         self.timeout = int(timeout)
         self.scan_type = scan_type
+        self.open_ports = 0
         self.results = {1: "Open", 2: "Closed", 3: "Filtered"}
 
     def set_print(self, ip, port, state):
@@ -24,7 +30,7 @@ class Scanner():
 
     def tcp_scan(self):
         print 'starting tcp_scan'
-        for port in [21, 23, 25, 53, 80, 110, 443]:
+        for port in self.port_list:
             resp = sr1(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="S"), timeout=self.timeout,
                        verbose=0)
             if str(type(resp)) == "<type 'NoneType'>":
@@ -34,12 +40,13 @@ class Scanner():
                     send_rst = sr(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="AR"), verbose=0,
                                   timeout=self.timeout)
                     self.set_print(self.dst_ip, port, self.results[1])
+                    self.open_ports += 1
                 elif resp.getlayer(TCP).flags == 0x14:
                     self.set_print(self.dst_ip, port, self.results[2])
 
     def udp_scan(self):
         print 'starting udp_scan'
-        for port in [21, 23, 25, 53, 80, 110, 443]:
+        for port in self.port_list:
             resp = sr1(IP(dst=self.dst_ip) / UDP(sport=self.src_port, dport=port), timeout=self.timeout, verbose=0)
             if str(type(resp)) == "<type 'NoneType'>":
                 retrans = []
@@ -53,6 +60,7 @@ class Scanner():
                 self.set_print(self.dst_ip, port, self.results[1] + "|" + self.results[3])
             elif resp.haslayer(UDP):
                 self.set_print(self.dst_ip, port, self.results[1])
+                self.open_ports += 1
             elif resp.haslayer(ICMP):
                 if int(resp.getlayer(ICMP).type) == 3 and int(resp.getlayer(ICMP).code) == 3:
                     self.set_print(self.dst_ip, port, self.results[2])
@@ -63,7 +71,7 @@ class Scanner():
 
     def ack_scan(self):
         print 'starting ack_scan'
-        for port in [21, 23, 25, 53, 80, 110, 443]:
+        for port in self.port_list:
             resp = sr1(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="A"), timeout=self.timeout,
                        verbose=0)
             if str(type(resp)) == "<type 'NoneType'>":
@@ -71,13 +79,14 @@ class Scanner():
             elif resp.haslayer(TCP):
                 if resp.getlayer(TCP).flags == 0x4:
                     self.set_print(self.dst_ip, port, "Unfiltered)")
+                    self.open_ports += 1
                 elif resp.haslayer(ICMP):
                     if int(resp.getlayer(ICMP).type) == 3 and int(resp.getlayer(ICMP).code) in [1, 2, 3, 9, 10, 13]:
                         self.set_print(self.dst_ip, port, self.results[3])
 
     def stealth_connection(self):
         print 'starting stealth_connection'
-        for port in [21, 23, 25, 53, 80, 110, 443]:
+        for port in self.port_list:
             resp = sr1(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="S"), timeout=self.timeout,
                        verbose=0)
             if str(type(resp)) == "<type 'NoneType'>":
@@ -87,6 +96,7 @@ class Scanner():
                     send_rst = sr(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="R"), verbose=0,
                                   timeout=self.timeout)
                     self.set_print(self.dst_ip, port, self.results[1])
+                    self.open_ports += 1
                 elif resp.getlayer(TCP).flags == 0x14:
                     self.set_print(self.dst_ip, port, self.results[2])
             elif resp.haslayer(ICMP):
@@ -98,11 +108,12 @@ class Scanner():
         Purpose: Send a fin packet over tcp, target should send back RST
         """
         print 'starting fin_scan'
-        for port in [21, 23, 25, 53, 80, 110, 443]:
+        for port in self.port_list:
             resp = sr1(IP(dst=self.dst_ip) / TCP(sport=self.src_port, dport=port, flags="F"), timeout=self.timeout,
                        verbose=0)
             if str(type(resp)) == "<type 'NoneType'>":
                 self.set_print(self.dst_ip, port, self.results[1] + "|" + self.results[3])
+                self.open_ports += 1
             elif resp.haslayer(TCP):
                 if resp.getlayer(TCP).flags == 0x14:
                     self.set_print(self.dst_ip, port, self.results[2])
@@ -110,7 +121,7 @@ class Scanner():
                     if int(resp.getlayer(ICMP).type) == 3 and int(resp.getlayer(ICMP).code) in [1, 2, 3, 9, 10, 13]:
                         self.set_print(self.dst_ip, port, self.results[3])
 
-    def run_scan(self,):
+    def run_scan(self, ):
         options = {'t': self.tcp_scan,
                    'u': self.udp_scan,
                    'a': self.ack_scan,
@@ -119,6 +130,8 @@ class Scanner():
         }
         try:
             options[self.scan_type]()
+            print "Scan Took:", timeit.default_timer() - self.start
+            print "Total Open ports:", self.open_ports
         except Exception, ex:
             print '%s is not vaild scan_type, bye bye' % self.scan_type
             exit(1)

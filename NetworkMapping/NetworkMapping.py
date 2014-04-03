@@ -1,12 +1,15 @@
+import timeit
+
 __author__ = 'tal'
 import logging
+
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy.all import *
 
 
-
 class NetworkMapping():
-    def __init__(self,):
+    def __init__(self, ):
+        self.hosts = 0
         print 'Starting NetWorkMapping On Your Subnet'
 
     def subnet_calc(self, net, interface):
@@ -16,6 +19,7 @@ class NetworkMapping():
             try:
                 hostname = socket.gethostbyaddr(r.psrc)
                 line += " " + hostname[0]
+                self.hosts += 1
             except socket.error:
                 pass
 
@@ -34,8 +38,8 @@ class NetworkMapping():
         return net
 
     def nm_run(self):
-         for network, netmask, _, interface, address in scapy.config.conf.route.routes:
-
+        start = timeit.default_timer()
+        for network, netmask, _, interface, address in scapy.config.conf.route.routes:
             # skip loopback network and default gw
             if network == 0 or interface == 'lo' or address == '127.0.0.1' or address == '0.0.0.0':
                 continue
@@ -52,6 +56,7 @@ class NetworkMapping():
 
             if net:
                 self.subnet_calc(net, interface)
-
+        print "Network Mapping Took :", timeit.default_timer() - start
+        print "Total Hosts : ", self.hosts
 
 

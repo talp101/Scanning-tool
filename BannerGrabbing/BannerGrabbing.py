@@ -1,3 +1,5 @@
+import timeit
+
 __author__ = 'tal'
 
 import urllib2
@@ -39,10 +41,12 @@ class BannerGrabber():
 
     def detect_os(self, ):
         try:
+            start = timeit.default_timer()
             server = self.banner_grabber()
             print 'Os:%s %s' % (self.os_dict[server].os, self.os_dict[server].version)
             print
             print "****** End Of Banner Grabbing ******"
+            print "Banner Grabbing Took:" , timeit.default_timer() - start
         except Exception, ex:
             print "Can't get Server from this url"
             exit(1)
